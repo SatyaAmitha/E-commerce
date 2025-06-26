@@ -3,7 +3,7 @@ const cors = require('cors')
 const helmet = require('helmet')
 const rateLimit = require('express-rate-limit')
 const session = require('express-session')
-require('dotenv').config()
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') })
 
 const { initDatabase } = require('./models')
 const { passport } = require('./middleware/auth')

@@ -2,12 +2,15 @@ const { Sequelize } = require('sequelize')
 const path = require('path')
 
 // Database connection - Using environment configuration
-const sequelize = new Sequelize(
-  process.env.DATABASE_URL || 'sqlite:' + path.join(__dirname, '../../database.sqlite'),
-  {
-    logging: process.env.NODE_ENV === 'development' ? console.log : false,
-  }
-)
+const dbPath = process.env.DATABASE_URL 
+  ? process.env.DATABASE_URL.replace('sqlite:', '') 
+  : path.join(__dirname, '../../database.sqlite');
+
+const sequelize = new Sequelize({
+  dialect: 'sqlite',
+  storage: dbPath.startsWith('sqlite:') ? dbPath.replace('sqlite:', '') : dbPath,
+  logging: process.env.NODE_ENV === 'development' ? console.log : false,
+})
 
 // Import models
 const User = require('./User')(sequelize, Sequelize.DataTypes)

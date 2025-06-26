@@ -1,12 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { productsService } from '@/services/products'
 import { useCartAnimation } from '@/components/ui/cart-animation'
+
+// Debounce function
+function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeout)
+    timeout = setTimeout(() => func(...args), wait)
+  }
+}
 
 interface Product {
   id: number
@@ -22,6 +31,7 @@ interface Product {
 
 export default function ShopPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -38,9 +48,15 @@ export default function ShopPage() {
     { value: 'bags', label: 'Bags' }
   ]
 
+  // Initialize search term from URL params
   useEffect(() => {
-    fetchProducts()
-  }, [searchTerm, selectedCategory, currentPage])
+    const urlSearch = searchParams.get('search')
+    if (urlSearch) {
+      setSearchTerm(urlSearch)
+      // Trigger immediate search for URL params
+      fetchProducts()
+    }
+  }, [searchParams])
 
   const fetchProducts = async () => {
     try {
@@ -61,6 +77,42 @@ export default function ShopPage() {
       setLoading(false)
     }
   }
+
+  // Create a stable debounced function
+  const debouncedSearch = useCallback(
+    debounce((term: string) => {
+      const params = {
+        page: 1,
+        limit: 9,
+        search: term || undefined,
+        category: selectedCategory !== 'all' ? selectedCategory : undefined
+      }
+      
+      // Only show loading for significant changes, not for every keystroke
+      productsService.getProducts(params)
+        .then(response => {
+          setProducts(response.products)
+          setTotalPages(Math.ceil(response.total / 9))
+          setCurrentPage(1)
+        })
+        .catch(error => {
+          console.error('Error fetching products:', error)
+        })
+    }, 300),
+    [selectedCategory]
+  )
+
+  // Fetch products when category or page changes immediately
+  useEffect(() => {
+    fetchProducts()
+  }, [selectedCategory, currentPage])
+
+  // Handle search term changes with debounce
+  useEffect(() => {
+    if (searchTerm !== (searchParams.get('search') || '')) {
+      debouncedSearch(searchTerm)
+    }
+  }, [searchTerm, debouncedSearch, searchParams])
 
   const handleAddToCart = (product: Product) => {
     // Get existing cart
@@ -101,7 +153,7 @@ export default function ShopPage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     setCurrentPage(1)
-    fetchProducts()
+    // Don't call fetchProducts here as it will be handled by useEffect
   }
 
   return (
@@ -202,21 +254,11 @@ export default function ShopPage() {
                           <span className="text-lg text-gray-500 line-through">${product.originalPrice}</span>
                         )}
                       </div>
-                      <Button 
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleAddToCart(product)
-                        }}
+                      
+                      <Button
+                        onClick={() => handleAddToCart(product)}
                         disabled={!product.inStock || isAnimating}
-                        className={`
-                          transition-all duration-200
-                          ${!product.inStock 
-                            ? 'bg-gray-400 cursor-not-allowed' 
-                            : isAnimating 
-                              ? 'bg-green-500 text-white scale-95' 
-                              : 'bg-teal-600 hover:bg-teal-700 text-white hover:scale-105'
-                          }
-                        `}
+                        className="bg-teal-600 hover:bg-teal-700 text-white disabled:bg-gray-400"
                       >
                         {!product.inStock ? 'Out of Stock' : 'Add to Cart'}
                       </Button>
@@ -243,10 +285,9 @@ export default function ShopPage() {
                     key={page}
                     onClick={() => setCurrentPage(page)}
                     variant={currentPage === page ? "default" : "outline"}
-                    className={
-                      currentPage === page
-                        ? "bg-teal-600 text-white"
-                        : "text-teal-600 border-teal-600 hover:bg-teal-50"
+                    className={currentPage === page 
+                      ? "bg-teal-600 hover:bg-teal-700 text-white" 
+                      : "text-teal-600 border-teal-600 hover:bg-teal-50"
                     }
                   >
                     {page}
