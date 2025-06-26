@@ -6,7 +6,7 @@ import Header from '@/components/layout/Header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { productsService } from '@/services/products'
-import { useCartAnimation } from '@/components/ui/cart-animation'
+import { AddToCartButton } from '@/components/ui/cart-animation'
 
 // Debounce function
 function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
@@ -38,7 +38,6 @@ export default function ShopPage() {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const { isAnimating, triggerAnimation, CartAnimationComponent } = useCartAnimation()
 
   const categories = [
     { value: 'all', label: 'All Categories' },
@@ -139,9 +138,6 @@ export default function ShopPage() {
     // Save to localStorage
     localStorage.setItem('cart', JSON.stringify(cart))
 
-    // Trigger animation instead of alert
-    triggerAnimation()
-
     // Dispatch cart update event
     window.dispatchEvent(new Event('cartUpdated'))
   }
@@ -159,9 +155,6 @@ export default function ShopPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
-      {/* Cart Animation */}
-      <CartAnimationComponent />
       
       <div className="container mx-auto px-4 py-8">
         {/* Page Header */}
@@ -255,13 +248,10 @@ export default function ShopPage() {
                         )}
                       </div>
                       
-                      <Button
-                        onClick={() => handleAddToCart(product)}
-                        disabled={!product.inStock || isAnimating}
-                        className="bg-teal-600 hover:bg-teal-700 text-white disabled:bg-gray-400"
-                      >
-                        {!product.inStock ? 'Out of Stock' : 'Add to Cart'}
-                      </Button>
+                      <AddToCartButton
+                        onAddToCart={() => handleAddToCart(product)}
+                        inStock={product.inStock}
+                      />
                     </div>
                   </div>
                 </div>

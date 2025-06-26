@@ -57,8 +57,11 @@ export default function Home() {
             <h1 className="text-5xl md:text-6xl font-bold mb-6 text-white hero-text">
               Welcome to Amigo
             </h1>
-            <p className="text-xl md:text-2xl mb-8 opacity-90 text-white hero-text">
+            <p className="text-xl md:text-2xl mb-4 opacity-90 text-white hero-text">
               Discover premium fashion that speaks to your style. Quality craftsmanship meets modern design.
+            </p>
+            <p className="text-lg md:text-xl mb-8 opacity-80 text-white italic">
+              "Amigo" - Because fashion is better with friends by your side
             </p>
             <Button 
               onClick={handleShopNow}

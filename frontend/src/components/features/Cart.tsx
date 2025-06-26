@@ -8,7 +8,7 @@ interface CartItem {
   id: number;
   name: string;
   price: number;
-  imageUrl: string;
+  image: string;
   quantity: number;
   size?: string;
   color?: string;
@@ -117,9 +117,13 @@ export default function Cart({ onClose }: CartProps) {
             {cartItems.map((item, index) => (
               <div key={`${item.id}-${item.size}-${item.color}-${index}`} className="flex items-center space-x-4 p-4 border rounded-lg">
                 <img
-                  src={item.imageUrl || '/api/placeholder/80/80'}
+                  src={item.image || '/api/placeholder/80/80'}
                   alt={item.name}
                   className="w-16 h-16 object-cover rounded"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/api/placeholder/80/80';
+                  }}
                 />
                 
                 <div className="flex-1">

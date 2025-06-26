@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import { Button } from '@/components/ui/button'
 import { productsService } from '@/services/products'
-import { useCartAnimation } from '@/components/ui/cart-animation'
+import { AddToCartButton } from '@/components/ui/cart-animation'
 
 interface Product {
   id: number
@@ -27,7 +27,6 @@ export default function ProductDetailPage() {
   const [selectedSize, setSelectedSize] = useState('')
   const [selectedColor, setSelectedColor] = useState('')
   const [quantity, setQuantity] = useState(1)
-  const { isAnimating, triggerAnimation, CartAnimationComponent } = useCartAnimation()
 
   const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
   const colors = ['Black', 'White', 'Navy', 'Gray', 'Beige']
@@ -56,8 +55,11 @@ export default function ProductDetailPage() {
     const existingCart = localStorage.getItem('cart')
     let cart = existingCart ? JSON.parse(existingCart) : []
 
-    // Check if product already exists in cart
-    const existingItemIndex = cart.findIndex((item: any) => item.id === product.id)
+    // Create unique key for cart item based on product, size, and color
+    const cartItemKey = `${product.id}-${selectedSize}-${selectedColor}`
+    const existingItemIndex = cart.findIndex((item: any) => 
+      item.id === product.id && item.size === selectedSize && item.color === selectedColor
+    )
     
     if (existingItemIndex > -1) {
       // Update quantity
@@ -77,9 +79,6 @@ export default function ProductDetailPage() {
 
     // Save to localStorage
     localStorage.setItem('cart', JSON.stringify(cart))
-
-    // Trigger animation instead of alert
-    triggerAnimation()
 
     // Dispatch cart update event
     window.dispatchEvent(new Event('cartUpdated'))
@@ -117,9 +116,6 @@ export default function ProductDetailPage() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      
-      {/* Cart Animation */}
-      <CartAnimationComponent />
 
       <div className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
@@ -231,21 +227,15 @@ export default function ProductDetailPage() {
 
             {/* Add to Cart Button */}
             <div className="space-y-4">
-              <Button
-                onClick={handleAddToCart}
-                disabled={!product.inStock || isAnimating}
-                className={`
-                  w-full py-3 text-lg font-semibold transition-all duration-200
-                  ${!product.inStock 
-                    ? 'bg-gray-400 cursor-not-allowed' 
-                    : isAnimating 
-                      ? 'bg-green-500 text-white scale-95' 
-                      : 'bg-teal-600 hover:bg-teal-700 text-white hover:scale-105'
-                  }
-                `}
-              >
-                {!product.inStock ? 'Out of Stock' : 'Add to Cart'}
-              </Button>
+              <AddToCartButton
+                onAddToCart={handleAddToCart}
+                inStock={product.inStock}
+                requiresSelection={true}
+                selectedSize={selectedSize}
+                selectedColor={selectedColor}
+                size="lg"
+                className="w-full py-3 text-lg font-semibold"
+              />
               
               {!product.inStock && (
                 <p className="text-red-600 text-sm text-center">This item is currently out of stock</p>
