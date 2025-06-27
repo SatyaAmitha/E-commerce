@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from 
 import LoginForm from "@/components/features/LoginForm"
 import Cart from "@/components/features/Cart"
 import Logo from "@/components/ui/logo"
+import { cartService } from '@/services/cart'
 
 export default function Header() {
   const [isLoginOpen, setIsLoginOpen] = useState(false)
@@ -34,15 +35,37 @@ export default function Header() {
       setUser(JSON.parse(userData))
     }
 
-    // Update cart count
-    const updateCartCount = () => {
-      const cart = localStorage.getItem('cart')
-      if (cart) {
-        const cartItems = JSON.parse(cart)
-        const totalItems = cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0)
-        setCartCount(totalItems)
-      } else {
-        setCartCount(0)
+    // Update cart count from appropriate source
+    const updateCartCount = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        if (token) {
+          // User is logged in, fetch from backend
+          const cartItems = await cartService.getCart()
+          const totalItems = cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0)
+          setCartCount(totalItems)
+        } else {
+          // User is not logged in, use localStorage
+          const cart = localStorage.getItem('cart')
+          if (cart) {
+            const cartItems = JSON.parse(cart)
+            const totalItems = cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0)
+            setCartCount(totalItems)
+          } else {
+            setCartCount(0)
+          }
+        }
+      } catch (error) {
+        console.error('Error updating cart count:', error)
+        // Fallback to localStorage
+        const cart = localStorage.getItem('cart')
+        if (cart) {
+          const cartItems = JSON.parse(cart)
+          const totalItems = cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0)
+          setCartCount(totalItems)
+        } else {
+          setCartCount(0)
+        }
       }
     }
 

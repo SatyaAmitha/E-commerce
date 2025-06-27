@@ -6,6 +6,7 @@ import Header from '@/components/layout/Header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { productsService } from '@/services/products'
+import { cartService } from '@/services/cart'
 import { AddToCartButton } from '@/components/ui/cart-animation'
 
 // Debounce function
@@ -113,34 +114,34 @@ export default function ShopPage() {
     }
   }, [searchTerm, debouncedSearch, searchParams])
 
-  const handleAddToCart = (product: Product) => {
-    // Get existing cart
-    const existingCart = localStorage.getItem('cart')
-    let cart = existingCart ? JSON.parse(existingCart) : []
-
-    // Check if product already exists in cart
-    const existingItemIndex = cart.findIndex((item: any) => item.id === product.id)
-    
-    if (existingItemIndex > -1) {
-      // Update quantity
-      cart[existingItemIndex].quantity += 1
-    } else {
-      // Add new item
-      cart.push({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.image,
-        quantity: 1
-      })
+  const handleAddToCart = async (product: Product) => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        // If not logged in, still add to local cart
+        await cartService.addToCart({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.image,
+          quantity: 1
+        });
+      } else {
+        // If logged in, add to backend cart
+        await cartService.addToCart({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.image,
+          quantity: 1
+        });
+      }
+      
+      // Toast or notification can be added here
+    } catch (error) {
+      console.error('Error adding to cart:', error);
     }
-
-    // Save to localStorage
-    localStorage.setItem('cart', JSON.stringify(cart))
-
-    // Dispatch cart update event
-    window.dispatchEvent(new Event('cartUpdated'))
-  }
+  };
 
   const handleProductClick = (productId: number) => {
     router.push(`/shop/${productId}`)

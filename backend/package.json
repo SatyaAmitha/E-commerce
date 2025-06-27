@@ -7,7 +7,10 @@
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "build": "echo 'Backend build complete'",
-    "seed": "node src/seeders/index.js"
+    "seed": "node src/seeders/index.js",
+    "db:reset": "rm -f database.sqlite && node src/seeders/index.js",
+    "db:backup": "cp database.sqlite database.backup.sqlite",
+    "db:restore": "cp database.backup.sqlite database.sqlite"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

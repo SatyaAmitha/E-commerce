@@ -10,16 +10,31 @@ const { passport } = require('./middleware/auth')
 const authRoutes = require('./routes/auth')
 const productRoutes = require('./routes/products')
 const orderRoutes = require('./routes/orders')
+const cartRoutes = require('./routes/cart')
+
+console.log('Cart routes loaded:', typeof cartRoutes)
 
 const app = express()
 const PORT = process.env.PORT || 5000
 
 // Security middleware
 app.use(helmet())
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
-}))
+app.use(cors())
+
+// Body parsing middleware - Moving this before routes
+app.use(express.json({ limit: '10mb' }))
+app.use(express.urlencoded({ extended: true }))
+
+// Request logging middleware for debugging (only in development)
+if (process.env.NODE_ENV === 'development') {
+  app.use((req, res, next) => {
+    // Only log non-sensitive routes
+    if (!req.path.includes('/auth/') && !req.path.includes('token=')) {
+      console.log(`${req.method} ${req.path}`)
+    }
+    next()
+  })
+}
 
 // Session configuration for OAuth
 app.use(session({
@@ -43,19 +58,23 @@ const limiter = rateLimit({
 })
 app.use(limiter)
 
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }))
-app.use(express.urlencoded({ extended: true }))
-
 // Routes
+console.log('Registering routes...')
 app.use('/api/auth', authRoutes)
 app.use('/auth', authRoutes) // Add OAuth routes without /api prefix
 app.use('/api/products', productRoutes)
 app.use('/api/orders', orderRoutes)
+app.use('/api/cart', cartRoutes)
+console.log('Cart routes registered at /api/cart')
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() })
+})
+
+// Test cart endpoint
+app.get('/api/cart/test', (req, res) => {
+  res.json({ message: 'Cart routes are working!' })
 })
 
 // Error handling middleware

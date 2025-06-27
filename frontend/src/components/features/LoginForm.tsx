@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { authService } from '@/services/auth'
+import { cartService } from '@/services/cart'
 
 interface LoginFormProps {
   onClose: () => void
@@ -40,6 +41,12 @@ export default function LoginForm({ onClose }: LoginFormProps) {
         })
         localStorage.setItem('user', JSON.stringify(result.user))
         localStorage.setItem('token', result.token)
+
+        // Sync cart after successful login
+        await cartService.syncCartOnLogin()
+        
+        // Dispatch cart update event to refresh cart count in header
+        window.dispatchEvent(new CustomEvent('cartUpdated'))
       } else {
         const result = await authService.register({
           name: formData.name,
@@ -48,12 +55,15 @@ export default function LoginForm({ onClose }: LoginFormProps) {
         })
         localStorage.setItem('user', JSON.stringify(result.user))
         localStorage.setItem('token', result.token)
+        
+        // Dispatch cart update event for new user
+        window.dispatchEvent(new CustomEvent('cartUpdated'))
       }
       
       window.location.reload()
       onClose()
     } catch (error: any) {
-      setError(error.message || 'An error occurred')
+      setError(error.response?.data?.error || 'An error occurred during login')
     } finally {
       setIsLoading(false)
     }

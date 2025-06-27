@@ -26,11 +26,15 @@ export interface AuthResponse {
 export const authService = {
   async login(data: LoginData): Promise<AuthResponse> {
     const response = await api.post('/auth/login', data)
+    const { token } = response.data
+    localStorage.setItem('token', token)
     return response.data
   },
 
   async register(data: RegisterData): Promise<AuthResponse> {
     const response = await api.post('/auth/register', data)
+    const { token } = response.data
+    localStorage.setItem('token', token)
     return response.data
   },
 
@@ -41,7 +45,7 @@ export const authService = {
 
   async getProfile(): Promise<User> {
     const response = await api.get('/auth/profile')
-    return response.data
+    return response.data.user
   },
 
   async refreshToken(): Promise<{ token: string }> {
