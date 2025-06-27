@@ -60,6 +60,8 @@ export default function Header() {
   const handleLogout = () => {
     localStorage.removeItem('user')
     localStorage.removeItem('token')
+    localStorage.removeItem('cart')
+    window.dispatchEvent(new CustomEvent('cartUpdated'))
     setUser(null)
     router.push('/')
   }

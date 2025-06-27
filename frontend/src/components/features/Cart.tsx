@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
@@ -21,6 +22,7 @@ interface CartProps {
 export default function Cart({ onClose }: CartProps) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     loadCartItems();
@@ -188,7 +190,10 @@ export default function Cart({ onClose }: CartProps) {
               </Button>
               <Button
                 className="flex-1 bg-teal-600 hover:bg-teal-700 text-white"
-                onClick={() => console.log('Checkout functionality coming soon!')}
+                onClick={() => {
+                  onClose?.()
+                  router.push('/checkout')
+                }}
               >
                 Checkout
               </Button>

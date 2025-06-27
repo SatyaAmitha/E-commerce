@@ -2,9 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast, Toaster } from 'sonner'
 import Header from '@/components/layout/Header'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
+import LoginForm from '@/components/features/LoginForm'
 import { productsService } from '@/services/products'
+import { authService } from '@/services/auth'
 
 interface Product {
   id: number
@@ -22,10 +26,27 @@ export default function Home() {
   const router = useRouter()
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [email, setEmail] = useState('')
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isLoginOpen, setIsLoginOpen] = useState(false)
 
   useEffect(() => {
     fetchFeaturedProducts()
+    checkAuthStatus()
   }, [])
+
+  const checkAuthStatus = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      if (token) {
+        await authService.getProfile() // This will throw an error if token is invalid
+        setIsAuthenticated(true)
+      }
+    } catch (error) {
+      console.error('Authentication check failed:', error)
+      setIsAuthenticated(false)
+    }
+  }
 
   const fetchFeaturedProducts = async () => {
     try {
@@ -46,8 +67,49 @@ export default function Home() {
     router.push('/shop')
   }
 
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      toast.error('Please enter a valid email address')
+      return
+    }
+    
+    if (!isAuthenticated) {
+      // Store the email temporarily
+      sessionStorage.setItem('pendingSubscriptionEmail', email)
+      setIsLoginOpen(true)
+      return
+    }
+
+    // Mock subscription success
+    toast.success('Thanks for subscribing! We will keep you updated with the latest news.')
+    setEmail('')
+  }
+
   return (
     <div className="min-h-screen bg-white">
+      <Toaster position="top-center" />
+      <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
+        <DialogContent className="sm:max-w-md bg-white">
+          <LoginForm onClose={() => {
+            setIsLoginOpen(false)
+            checkAuthStatus() // Recheck auth status after login
+            
+            // Check for pending subscription
+            const pendingEmail = sessionStorage.getItem('pendingSubscriptionEmail')
+            if (pendingEmail) {
+              setEmail(pendingEmail)
+              sessionStorage.removeItem('pendingSubscriptionEmail')
+              // Submit the subscription
+              toast.success('Thanks for subscribing! We will keep you updated with the latest news.')
+              setEmail('')
+            }
+          }} />
+        </DialogContent>
+      </Dialog>
       <Header />
       
       {/* Hero Section */}
@@ -190,18 +252,29 @@ export default function Home() {
           <h2 className="text-3xl font-bold mb-4 text-white">Stay in Style</h2>
           <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
             Subscribe to our newsletter and be the first to know about new collections, exclusive offers, and style tips.
+            {!isAuthenticated && (
+              <span className="block mt-2 text-sm text-teal-400">
+                Please login to subscribe to our newsletter
+              </span>
+            )}
           </p>
           
-          <div className="max-w-md mx-auto flex gap-4">
+          <form onSubmit={handleSubscribe} className="max-w-md mx-auto flex gap-4">
             <input
               type="email"
               placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="flex-1 px-4 py-3 rounded-lg text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              required
             />
-            <Button className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3">
+            <Button 
+              type="submit"
+              className="bg-teal-600 hover:bg-teal-700 text-white px-8"
+            >
               Subscribe
             </Button>
-          </div>
+          </form>
         </div>
       </section>
 
