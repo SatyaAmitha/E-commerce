@@ -79,6 +79,16 @@ export default function LoginForm({ onClose }: LoginFormProps) {
     }
   }
 
+  const handleGoogleLogin = () => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
+    if (!apiUrl) {
+      console.error('API URL not configured')
+      setError('Authentication service not properly configured')
+      return
+    }
+    window.location.href = `${apiUrl}/auth/google`
+  }
+
   return (
     <div className="p-6">
       <DialogHeader className="text-center mb-6">
@@ -167,7 +177,7 @@ export default function LoginForm({ onClose }: LoginFormProps) {
 
         <Button
           type="button"
-          onClick={() => window.location.href = 'http://localhost:5000/auth/google'}
+          onClick={handleGoogleLogin}
           className="w-full bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 py-2 px-4 rounded-md transition-colors font-medium flex items-center justify-center space-x-2"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
