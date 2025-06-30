@@ -6,16 +6,7 @@ import Header from '@/components/layout/Header'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import LoginForm from '@/components/features/LoginForm'
-
-interface CartItem {
-  id: number
-  name: string
-  price: number
-  quantity: number
-  image?: string
-  size?: string
-  color?: string
-}
+import { cartService, CartItem } from '@/services/cart'
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -34,12 +25,10 @@ export default function CheckoutPage() {
     setIsAuthenticated(!!token)
   }
 
-  const loadCartItems = () => {
+  const loadCartItems = async () => {
     try {
-      const cart = localStorage.getItem('cart')
-      if (cart) {
-        setCartItems(JSON.parse(cart))
-      }
+      const items = await cartService.getCart()
+      setCartItems(items)
     } catch (error) {
       console.error('Error loading cart:', error)
     } finally {
