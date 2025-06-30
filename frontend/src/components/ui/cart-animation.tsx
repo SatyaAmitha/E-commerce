@@ -75,7 +75,7 @@ export function AddToCartButton({
   };
 
   const getButtonClassName = () => {
-    let baseClasses = `transition-all duration-300 ${className}`;
+    const baseClasses = `transition-all duration-300 ${className}`;
     
     switch (buttonState) {
       case 'adding':
@@ -120,10 +120,9 @@ export function AddToCartButton({
 interface CartAnimationProps {
   isVisible: boolean;
   onComplete: () => void;
-  buttonRef?: React.RefObject<HTMLElement>;
 }
 
-export default function CartAnimation({ isVisible, onComplete, buttonRef }: CartAnimationProps) {
+export default function CartAnimation({ isVisible, onComplete }: CartAnimationProps) {
   useEffect(() => {
     if (isVisible) {
       const timer = setTimeout(() => {

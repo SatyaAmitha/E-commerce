@@ -27,7 +27,7 @@ export default function AboutPage() {
               <p>
                 Founded in 2020, Amigo started with a simple mission: to make premium fashion 
                 accessible to everyone. We noticed a gap in the market for high-quality, 
-                stylish clothing that didn't break the bank.
+                stylish clothing that didn&apos;t break the bank.
               </p>
               <p>
                 Our team of designers and fashion enthusiasts work tirelessly to curate 
@@ -35,7 +35,7 @@ export default function AboutPage() {
                 in our collection is carefully selected for its quality, comfort, and style.
               </p>
               <p>
-                Today, we're proud to serve thousands of customers worldwide, helping them 
+                Today, we&apos;re proud to serve thousands of customers worldwide, helping them 
                 express their unique style with confidence.
               </p>
             </div>
@@ -50,7 +50,7 @@ export default function AboutPage() {
               </li>
               <li className="flex items-start">
                 <span className="text-teal-600 mr-2">✓</span>
-                <span><strong>Sustainability:</strong> We're committed to ethical sourcing and eco-friendly practices.</span>
+                <span><strong>Sustainability:</strong> We&apos;re committed to ethical sourcing and eco-friendly practices.</span>
               </li>
               <li className="flex items-start">
                 <span className="text-teal-600 mr-2">✓</span>

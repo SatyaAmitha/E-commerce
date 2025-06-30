@@ -9,10 +9,26 @@ import Cart from "@/components/features/Cart"
 import Logo from "@/components/ui/logo"
 import { cartService } from '@/services/cart'
 
+interface User {
+  id: number
+  name: string
+  email: string
+}
+
+interface CartItem {
+  id: number
+  name: string
+  price: number
+  image: string
+  quantity: number
+  size?: string
+  color?: string
+}
+
 export default function Header() {
   const [isLoginOpen, setIsLoginOpen] = useState(false)
   const [isCartOpen, setIsCartOpen] = useState(false)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [cartCount, setCartCount] = useState(0)
   const router = useRouter()
   const pathname = usePathname()
@@ -42,14 +58,14 @@ export default function Header() {
         if (token) {
           // User is logged in, fetch from backend
           const cartItems = await cartService.getCart()
-          const totalItems = cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0)
+          const totalItems = cartItems.reduce((sum: number, item: CartItem) => sum + item.quantity, 0)
           setCartCount(totalItems)
         } else {
           // User is not logged in, use localStorage
           const cart = localStorage.getItem('cart')
           if (cart) {
-            const cartItems = JSON.parse(cart)
-            const totalItems = cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0)
+            const cartItems: CartItem[] = JSON.parse(cart)
+            const totalItems = cartItems.reduce((sum: number, item: CartItem) => sum + item.quantity, 0)
             setCartCount(totalItems)
           } else {
             setCartCount(0)
@@ -60,8 +76,8 @@ export default function Header() {
         // Fallback to localStorage
         const cart = localStorage.getItem('cart')
         if (cart) {
-          const cartItems = JSON.parse(cart)
-          const totalItems = cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0)
+          const cartItems: CartItem[] = JSON.parse(cart)
+          const totalItems = cartItems.reduce((sum: number, item: CartItem) => sum + item.quantity, 0)
           setCartCount(totalItems)
         } else {
           setCartCount(0)

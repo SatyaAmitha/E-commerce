@@ -11,6 +11,15 @@ interface LoginFormProps {
   onClose: () => void
 }
 
+interface ApiError {
+  response?: {
+    data?: {
+      error?: string
+    }
+  }
+  message: string
+}
+
 export default function LoginForm({ onClose }: LoginFormProps) {
   const [isLogin, setIsLogin] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
@@ -62,8 +71,9 @@ export default function LoginForm({ onClose }: LoginFormProps) {
       
       window.location.reload()
       onClose()
-    } catch (error: any) {
-      setError(error.response?.data?.error || 'An error occurred during login')
+    } catch (error) {
+      const apiError = error as ApiError
+      setError(apiError.response?.data?.error || apiError.message || 'An error occurred during login')
     } finally {
       setIsLoading(false)
     }

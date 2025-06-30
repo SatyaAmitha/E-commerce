@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import Image from 'next/image'
 import { toast, Toaster } from 'sonner'
 import Header from '@/components/layout/Header'
 import { Button } from '@/components/ui/button'
@@ -123,15 +125,22 @@ export default function Home() {
               Discover premium fashion that speaks to your style. Quality craftsmanship meets modern design.
             </p>
             <p className="text-lg md:text-xl mb-8 opacity-80 text-white italic">
-              "Amigo" - Because fashion is better with friends by your side
+              &quot;Amigo&quot; - Because fashion is better with friends by your side
             </p>
-            <Button 
-              onClick={handleShopNow}
-              size="lg" 
-              className="bg-white text-teal-600 hover:bg-gray-100 text-lg px-8 py-3 font-semibold transition-colors"
-            >
-              Shop Now
-            </Button>
+            <div className="grid grid-cols-1 gap-4 text-center">
+              <Link href="/shop" className="inline-block bg-teal-600 text-white px-6 py-3 rounded-lg hover:bg-teal-700 transition-colors">
+                Shop Now
+              </Link>
+              <Link href="/shop" className="inline-block bg-white text-teal-600 px-6 py-3 rounded-lg border border-teal-600 hover:bg-teal-50 transition-colors">
+                View Collection
+              </Link>
+              <Link href="/shop" className="inline-block bg-gray-100 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors">
+                Browse All
+              </Link>
+              <Link href="/shop" className="inline-block bg-white text-gray-800 px-6 py-3 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">
+                See More
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -198,10 +207,12 @@ export default function Home() {
                   className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer border border-gray-200"
                 >
                   <div className="aspect-square relative">
-                    <img
-                      src={product.image || '/api/placeholder/400/400'}
+                    <Image
+                      src={product.image}
                       alt={product.name}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                     {product.originalPrice && (
                       <div className="absolute top-4 left-4 bg-teal-600 text-white px-3 py-1 rounded text-sm font-semibold">

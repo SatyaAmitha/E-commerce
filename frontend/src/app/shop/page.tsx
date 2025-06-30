@@ -9,8 +9,11 @@ import { productsService } from '@/services/products'
 import { cartService } from '@/services/cart'
 import { AddToCartButton } from '@/components/ui/cart-animation'
 
-// Debounce function
-function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
+// Debounce function with proper types
+function debounce<T extends (...args: Parameters<T>) => ReturnType<T>>(
+  func: T,
+  wait: number
+): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout
   return (...args: Parameters<T>) => {
     clearTimeout(timeout)
@@ -30,6 +33,13 @@ interface Product {
   createdAt: string
 }
 
+interface SearchParams {
+  page: number
+  limit: number
+  search?: string
+  category?: string
+}
+
 export default function ShopPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -46,66 +56,60 @@ export default function ShopPage() {
     { value: 'accessories', label: 'Accessories' },
     { value: 'shoes', label: 'Shoes' },
     { value: 'bags', label: 'Bags' }
-  ]
+  ] as const
+
+  const fetchProducts = useCallback(async (params: SearchParams) => {
+    try {
+      setLoading(true)
+      const response = await productsService.getProducts(params)
+      setProducts(response.products)
+      setTotalPages(Math.ceil(response.total / params.limit))
+    } catch (error) {
+      console.error('Error fetching products:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   // Initialize search term from URL params
   useEffect(() => {
     const urlSearch = searchParams.get('search')
     if (urlSearch) {
       setSearchTerm(urlSearch)
-      // Trigger immediate search for URL params
-      fetchProducts()
-    }
-  }, [searchParams])
-
-  const fetchProducts = async () => {
-    try {
-      setLoading(true)
-      const params = {
+      fetchProducts({
         page: currentPage,
         limit: 9,
-        search: searchTerm || undefined,
+        search: urlSearch,
         category: selectedCategory !== 'all' ? selectedCategory : undefined
-      }
-      
-      const response = await productsService.getProducts(params)
-      setProducts(response.products)
-      setTotalPages(Math.ceil(response.total / 9))
-    } catch (error) {
-      console.error('Error fetching products:', error)
-    } finally {
-      setLoading(false)
+      })
     }
-  }
+  }, [searchParams, currentPage, selectedCategory, fetchProducts])
 
   // Create a stable debounced function
   const debouncedSearch = useCallback(
     debounce((term: string) => {
-      const params = {
+      const params: SearchParams = {
         page: 1,
         limit: 9,
         search: term || undefined,
         category: selectedCategory !== 'all' ? selectedCategory : undefined
       }
       
-      // Only show loading for significant changes, not for every keystroke
-      productsService.getProducts(params)
-        .then(response => {
-          setProducts(response.products)
-          setTotalPages(Math.ceil(response.total / 9))
-          setCurrentPage(1)
-        })
-        .catch(error => {
-          console.error('Error fetching products:', error)
-        })
+      fetchProducts(params)
     }, 300),
-    [selectedCategory]
+    [selectedCategory, fetchProducts]
   )
 
   // Fetch products when category or page changes immediately
   useEffect(() => {
-    fetchProducts()
-  }, [selectedCategory, currentPage])
+    const params: SearchParams = {
+      page: currentPage,
+      limit: 9,
+      search: searchTerm || undefined,
+      category: selectedCategory !== 'all' ? selectedCategory : undefined
+    }
+    fetchProducts(params)
+  }, [selectedCategory, currentPage, searchTerm, fetchProducts])
 
   // Handle search term changes with debounce
   useEffect(() => {

@@ -67,9 +67,9 @@ export default function ContactPage() {
             
             {/* Clean Subtitle */}
             <p className="text-xl md:text-2xl text-gray-700 max-w-4xl mx-auto mb-8 animate-slideInUp animation-delay-200">
-              Have questions, feedback, or need assistance? We're here to help! 
+              Have questions, feedback, or need assistance? We&apos;re here to help! 
               <br />
-              <span className="text-teal-600 font-semibold">Reach out to us and we'll get back to you as soon as possible.</span>
+              <span className="text-teal-600 font-semibold">Reach out to us and we&apos;ll get back to you as soon as possible.</span>
             </p>
             
             {/* Simple Decorative Elements */}
@@ -122,7 +122,7 @@ export default function ContactPage() {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">Email</h3>
                     <p className="text-gray-600">support@amigofashion.com</p>
-                    <p className="text-sm text-gray-500">We'll respond within 24 hours</p>
+                    <p className="text-sm text-gray-500">We&apos;ll respond within 24 hours</p>
                   </div>
                 </div>
 

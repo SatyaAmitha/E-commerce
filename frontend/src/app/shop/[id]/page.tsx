@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import Image from 'next/image'
 import Header from '@/components/layout/Header'
 import { Button } from '@/components/ui/button'
 import { productsService } from '@/services/products'
@@ -19,6 +20,16 @@ interface Product {
   createdAt: string
 }
 
+interface CartItem {
+  id: number
+  name: string
+  price: number
+  image: string
+  quantity: number
+  size: string
+  color: string
+}
+
 export default function ProductDetailPage() {
   const router = useRouter()
   const params = useParams()
@@ -28,16 +39,10 @@ export default function ProductDetailPage() {
   const [selectedColor, setSelectedColor] = useState('')
   const [quantity, setQuantity] = useState(1)
 
-  const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
-  const colors = ['Black', 'White', 'Navy', 'Gray', 'Beige']
+  const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'] as const
+  const colors = ['Black', 'White', 'Navy', 'Gray', 'Beige'] as const
 
-  useEffect(() => {
-    if (params.id) {
-      fetchProduct()
-    }
-  }, [params.id])
-
-  const fetchProduct = async () => {
+  const fetchProduct = useCallback(async () => {
     try {
       const productData = await productsService.getProduct(Number(params.id))
       setProduct(productData)
@@ -46,18 +51,22 @@ export default function ProductDetailPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [params.id])
+
+  useEffect(() => {
+    if (params.id) {
+      fetchProduct()
+    }
+  }, [params.id, fetchProduct])
 
   const handleAddToCart = () => {
     if (!product) return
 
     // Get existing cart
     const existingCart = localStorage.getItem('cart')
-    let cart = existingCart ? JSON.parse(existingCart) : []
+    const cart: CartItem[] = existingCart ? JSON.parse(existingCart) : []
 
-    // Create unique key for cart item based on product, size, and color
-    const cartItemKey = `${product.id}-${selectedSize}-${selectedColor}`
-    const existingItemIndex = cart.findIndex((item: any) => 
+    const existingItemIndex = cart.findIndex(item => 
       item.id === product.id && item.size === selectedSize && item.color === selectedColor
     )
     
@@ -131,11 +140,13 @@ export default function ProductDetailPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Product Image */}
-          <div className="aspect-square">
-            <img
+          <div className="aspect-square relative">
+            <Image
               src={product.image || '/api/placeholder/600/600'}
               alt={product.name}
-              className="w-full h-full object-cover rounded-lg shadow-lg"
+              fill
+              className="object-cover rounded-lg shadow-lg"
+              sizes="(max-width: 768px) 100vw, 50vw"
             />
           </div>
 
