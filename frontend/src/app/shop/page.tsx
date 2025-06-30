@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Header from '@/components/layout/Header'
@@ -40,7 +41,18 @@ interface SearchParams {
   category?: string
 }
 
-export default function ShopPage() {
+function LoadingSpinner() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading products...</p>
+      </div>
+    </div>
+  )
+}
+
+function ShopPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [products, setProducts] = useState<Product[]>([])
@@ -157,6 +169,10 @@ export default function ShopPage() {
     // Don't call fetchProducts here as it will be handled by useEffect
   }
 
+  if (loading) {
+    return <LoadingSpinner />
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -208,105 +224,85 @@ export default function ShopPage() {
         </div>
 
         {/* Products Grid */}
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="text-lg text-gray-600">Loading products...</div>
-          </div>
-        ) : products.length > 0 ? (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-              {products.map((product) => (
-                <div
-                  key={product.id}
-                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-                >
-                  <div 
-                    className="aspect-square relative cursor-pointer"
-                    onClick={() => handleProductClick(product.id)}
-                  >
-                    <img
-                      src={product.image || '/api/placeholder/400/400'}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                    {product.originalPrice && (
-                      <div className="absolute top-4 left-4 bg-teal-600 text-white px-3 py-1 rounded text-sm font-semibold">
-                        SALE
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="p-6">
-                    <h3 
-                      className="text-xl font-semibold text-gray-900 mb-2 cursor-pointer hover:text-teal-600 transition-colors"
-                      onClick={() => handleProductClick(product.id)}
-                    >
-                      {product.name}
-                    </h3>
-                    <p className="text-gray-600 mb-4 line-clamp-2">{product.description}</p>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-2xl font-bold text-teal-600">${product.price}</span>
-                        {product.originalPrice && (
-                          <span className="text-lg text-gray-500 line-through">${product.originalPrice}</span>
-                        )}
-                      </div>
-                      
-                      <AddToCartButton
-                        onAddToCart={() => handleAddToCart(product)}
-                        inStock={product.inStock}
-                      />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {products.map((product) => (
+            <div
+              key={product.id}
+              className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200"
+            >
+              <div 
+                className="cursor-pointer"
+                onClick={() => handleProductClick(product.id)}
+              >
+                <div className="aspect-square relative">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                  {product.originalPrice && (
+                    <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-md text-sm">
+                      Sale
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{product.name}</h3>
+                  <p className="text-gray-600 text-sm mb-2 line-clamp-2">{product.description}</p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-lg font-bold text-gray-900">${product.price}</span>
+                      {product.originalPrice && (
+                        <span className="text-sm text-gray-500 line-through ml-2">
+                          ${product.originalPrice}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center space-x-2">
-                <Button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  variant="outline"
-                  className="text-teal-600 border-teal-600 hover:bg-teal-50"
-                >
-                  Previous
-                </Button>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <Button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    variant={currentPage === page ? "default" : "outline"}
-                    className={currentPage === page 
-                      ? "bg-teal-600 hover:bg-teal-700 text-white" 
-                      : "text-teal-600 border-teal-600 hover:bg-teal-50"
-                    }
-                  >
-                    {page}
-                  </Button>
-                ))}
-                
-                <Button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  variant="outline"
-                  className="text-teal-600 border-teal-600 hover:bg-teal-50"
-                >
-                  Next
-                </Button>
               </div>
-            )}
-          </>
-        ) : (
-          <div className="text-center py-12">
-            <div className="text-lg text-gray-600 mb-4">No products found</div>
-            <p className="text-gray-500">Try adjusting your search or filter criteria</p>
+              <div className="px-4 pb-4">
+                <AddToCartButton
+                  onAddToCart={() => handleAddToCart(product)}
+                  disabled={!product.inStock}
+                  inStock={product.inStock}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-8 flex justify-center gap-2">
+            <Button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="bg-teal-600 hover:bg-teal-700 text-white"
+            >
+              Previous
+            </Button>
+            <span className="px-4 py-2 bg-white rounded-md border">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="bg-teal-600 hover:bg-teal-700 text-white"
+            >
+              Next
+            </Button>
           </div>
         )}
       </div>
     </div>
+  )
+}
+
+export default function ShopPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <ShopPageContent />
+    </Suspense>
   )
 } 
